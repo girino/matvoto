@@ -1,0 +1,108 @@
+package org.girino.matvoto;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Stack;
+
+
+public class ElectionSimulator {
+
+	public static final int VOTERS = 100;
+	public static final int CANDIDATES = 3;
+
+	int numVoters;
+	int[] candidates;
+	VoteSystem system;
+	
+	public ElectionSimulator(int voters, int numCandidates, VoteSystem system) {
+		candidates = makeCandidates(numCandidates);
+		numVoters = voters;
+		this.system = system;
+	}
+	
+	private int[] makeCandidates(int numCandidates) {
+		int[] candidates = new int[numCandidates];
+		for (int i = 0; i < numCandidates; i++) {
+			candidates[i] = i;
+		}
+		return candidates;
+	}
+	
+	public void run() {
+		List<int[]> combinations = makeCombinations(candidates);
+		ArrayList<Voter> l = new ArrayList<Voter>();
+		for (int[] preference : combinations) {
+			Voter v = new Voter(preference);
+			l.add(v);
+		}
+		countVoters(l);
+	}
+	
+	private void countVoters(ArrayList<Voter> elements) {
+		int[] counts = new int[elements.size()];
+		Voter[] elementsArray = elements.toArray(new Voter[0]);
+		recurseCount(candidates, elementsArray, counts, numVoters, 0, 0);
+	}
+	
+	int previous = -1;
+	private void recurseCount(int[] candidates, Voter[] voters, int[] current, int numVoters, int pos, int sum) {
+		if (pos == (current.length-1)) {
+			current[pos] = (numVoters-sum);
+			int winner = system.getWinner(voters, current, candidates);
+			if (previous != winner) {
+				previous = winner;
+				System.out.println(Arrays.toString(current) + " -> " + winner);
+			}
+		} else {
+			int begin = numVoters - sum;
+			for (int i = begin; i >=0; i--) {
+				current[pos] = i;
+				recurseCount(candidates, voters, current, numVoters, pos+1, sum+i);
+			}
+		}
+	}
+
+	private List<int[]> makeCombinations(int[] elements) {
+		Stack<int[]> ret = new Stack<int[]>();
+		perm(ret, elements, 0);
+		return ret;
+	}
+
+	/* recursive function to generate permutations */
+	private void perm(Stack<int[]> s, int[] v, int i) {
+		if (i == v.length) {
+			// add to permutation stack
+			s.push(v.clone());
+		} else
+			/* recursively explore the permutations starting
+			 * at index i going through index n-1
+			 */
+			for (int j = i; j < v.length; j++) {
+				swap(v, i, j);
+				perm(s, v, i+1);
+				// swap back
+				swap(v, i, j);
+			}
+	}
+	
+	private void swap(int[] v, int i, int j) {
+		int tmp = v[i];
+		v[i] = v[j];
+		v[j] = tmp;
+	}
+
+	public static void main(String[] args) {
+		int voters = VOTERS;
+		int candidates = CANDIDATES;
+		if (args.length > 0) {
+			voters = Integer.parseInt(args[0]);
+		}
+		if (args.length > 1) {
+			candidates = Integer.parseInt(args[1]);
+		}
+		new ElectionSimulator(voters, candidates, new PluralityVote()).run();
+	}
+}
