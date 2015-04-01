@@ -128,17 +128,7 @@ public class CombinatorialElectionSimulator {
 		v[j] = tmp;
 	}
 	
-	private static long getMultiplier(long[] current, int numVoters) {
-		long b = numVoters;
-		long a = current[0];
-		long ret = CombinatorialHelper.combination(a, b);
-		for (int i = 1; i < current.length; i++) {
-			b -= a;
-			a = current[i];
-			ret *= CombinatorialHelper.combination(a, b);
-		}
-		return ret;
-	}
+
 
 	public static void main(String[] args) {
 		int voters = VOTERS;
@@ -154,17 +144,17 @@ public class CombinatorialElectionSimulator {
 			new CombinatorialElectionSimulator(i, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
 		}
 		
-		CombinatorialElectionSimulator c = new CombinatorialElectionSimulator(voters, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() });
-		int s = c.makeCombinations(c.makeCandidates(candidates)).size();
-		for (Long l: m.keySet()) {
-			Long x = m.get(l);
-			long[] ret = new long[s];
-			long mult = 1;
-			for (int j = 0; j < ret.length; j++) {
-				ret[j] = (l/mult) % 10;
-				mult *= 10;
-			}
-			System.out.println(Arrays.toString(ret) + " -> " + x + " = " + getMultiplier(ret, voters));
-		}
+//		CombinatorialElectionSimulator c = new CombinatorialElectionSimulator(voters, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() });
+//		int s = c.makeCombinations(c.makeCandidates(candidates)).size();
+//		for (Long l: m.keySet()) {
+//			Long x = m.get(l);
+//			long[] ret = new long[s];
+//			long mult = 1;
+//			for (int j = 0; j < ret.length; j++) {
+//				ret[j] = (l/mult) % 10;
+//				mult *= 10;
+//			}
+//			System.out.println(Arrays.toString(ret) + " -> " + x + " = " + getMultiplier(ret, voters));
+//		}
 	}
 }

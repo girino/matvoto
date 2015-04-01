@@ -10,7 +10,7 @@ import java.util.Stack;
 
 public class BadCombinatorialElectionSimulator {
 
-	public static final int VOTERS = 3;
+	public static final int VOTERS = 100;
 	public static final int CANDIDATES = 3;
 
 	int numVoters;
@@ -51,14 +51,16 @@ public class BadCombinatorialElectionSimulator {
 		recurseCount(candidates, elementsArray, counts, numVoters, 0, 0, stats);
 	}
 	
-	private long getMultiplier(int[] current, int numVoters) {
-		long b = numVoters;
-		long a = current[0];
+	private static long getMultiplier(int[] current, int numVoters) {
+		long a = numVoters;
+		long b = current[0];
 		long ret = CombinatorialHelper.combination(a, b);
+//		System.out.println("0: " + a + ", " + b + " -> " + ret);
 		for (int i = 1; i < current.length; i++) {
-			b -= a;
-			a = current[i];
+			a -= b;
+			b = current[i];
 			ret *= CombinatorialHelper.combination(a, b);
+//			System.out.println(i + ": " + a + ", " + b + " -> " + ret);
 		}
 		return ret;
 	}
@@ -78,7 +80,7 @@ public class BadCombinatorialElectionSimulator {
 				}
 			}
 			long multiplier = getMultiplier(current, numVoters);
-			System.out.println(Arrays.toString(current) + " -> " + multiplier);
+//			System.out.println(Arrays.toString(current) + " -> " + multiplier);
 			stats[0] += multiplier;
 			if (differs) {
 				stats[1] += multiplier;

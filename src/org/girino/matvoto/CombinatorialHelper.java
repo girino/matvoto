@@ -20,7 +20,7 @@ public class CombinatorialHelper {
 	static Map<Long, Map<Long, Long>> combinationMap = new HashMap<Long, Map<Long, Long>>();
 	
 	public static long combination(long a, long b) {
-		if (a == 0 || a == b) return 1; 
+		if (b == 0 || a == b) return 1; 
 		Map<Long, Long> secondLevel = combinationMap.get(a);
 		if (secondLevel == null) {
 			secondLevel = new HashMap<Long, Long>();
