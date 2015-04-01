@@ -2,13 +2,15 @@ package org.girino.matvoto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 
 public class CombinatorialElectionSimulator {
 
-	public static final int VOTERS = 15;
+	public static final int VOTERS = 4;
 	public static final int CANDIDATES = 3;
 
 	int numVoters;
@@ -49,6 +51,7 @@ public class CombinatorialElectionSimulator {
 		recurseCount(candidates, elementsArray, votes, 0, stats);
 	}
 	
+	static Map<Long, Long> m = new HashMap<Long, Long>();
 	private void recurseCount(int[] candidates, Voter[] validVoters, int[] votes, int pos, long[] stats) {
 		if (pos == (votes.length)) {
 			int[] current = new int[validVoters.length];
@@ -74,6 +77,16 @@ public class CombinatorialElectionSimulator {
 					break;
 				}
 			}
+			long l = 0;
+			long mult = 1;
+			for (int i = 0; i < current.length; i++) {
+				l += current[i] * mult;
+				mult *= 10;
+			}
+			Long old = m.get(l);
+			if (old == null) old = 0L;
+			m.put(l, old+1);
+//			System.out.println(Arrays.toString(current) + " -> " + (old+1));
 			stats[0]++;
 			if (differs) {
 				stats[1]++;
@@ -114,6 +127,18 @@ public class CombinatorialElectionSimulator {
 		v[i] = v[j];
 		v[j] = tmp;
 	}
+	
+	private static long getMultiplier(long[] current, int numVoters) {
+		long b = numVoters;
+		long a = current[0];
+		long ret = CombinatorialHelper.combination(a, b);
+		for (int i = 1; i < current.length; i++) {
+			b -= a;
+			a = current[i];
+			ret *= CombinatorialHelper.combination(a, b);
+		}
+		return ret;
+	}
 
 	public static void main(String[] args) {
 		int voters = VOTERS;
@@ -125,7 +150,21 @@ public class CombinatorialElectionSimulator {
 			candidates = Integer.parseInt(args[1]);
 		}
 		for (int i = candidates; i <= voters; i++) {
+			m = new HashMap<Long, Long>();
 			new CombinatorialElectionSimulator(i, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
+		}
+		
+		CombinatorialElectionSimulator c = new CombinatorialElectionSimulator(voters, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() });
+		int s = c.makeCombinations(c.makeCandidates(candidates)).size();
+		for (Long l: m.keySet()) {
+			Long x = m.get(l);
+			long[] ret = new long[s];
+			long mult = 1;
+			for (int j = 0; j < ret.length; j++) {
+				ret[j] = (l/mult) % 10;
+				mult *= 10;
+			}
+			System.out.println(Arrays.toString(ret) + " -> " + x + " = " + getMultiplier(ret, voters));
 		}
 	}
 }
