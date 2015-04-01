@@ -5,22 +5,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Stack;
 
 
-public class ElectionSimulator {
+public class RandomElectorElectionSimulator {
 
+	private static final int REPETITIONS = 10000;
 	public static final int VOTERS = 100;
 	public static final int CANDIDATES = 3;
 
 	int numVoters;
 	int[] candidates;
 	VoteSystem[] system;
+	int rounds = 0;
+	Random rnd = new Random();
 	
-	public ElectionSimulator(int voters, int numCandidates, VoteSystem[] system) {
+	public RandomElectorElectionSimulator(int voters, int numCandidates, int rounds, VoteSystem[] system) {
 		candidates = makeCandidates(numCandidates);
 		numVoters = voters;
 		this.system = system;
+		this.rounds = rounds;
 	}
 	
 	private int[] makeCandidates(int numCandidates) {
@@ -46,35 +51,57 @@ public class ElectionSimulator {
 	}
 	
 	private void countVoters(ArrayList<Voter> elements, int[] stats) {
-		int[] counts = new int[elements.size()];
 		Voter[] elementsArray = elements.toArray(new Voter[0]);
-		recurseCount(candidates, elementsArray, counts, numVoters, 0, 0, stats);
+		for (int i = 0; i < this.rounds; i++) {
+			randomCount(candidates, elementsArray, numVoters, stats);
+		}
 	}
 	
-	private void recurseCount(int[] candidates, Voter[] voters, int[] current, int numVoters, int pos, int sum, int[] stats) {
-		if (pos == (current.length-1)) {
-			current[pos] = (numVoters-sum);
-			int[] winners = new int[system.length];
-			for (int i = 0; i < system.length; i++) {
-				winners[i] = system[i].getWinner(voters, current, candidates);
+	private void shuffle(int[] v) {
+		for (int i = 0; i < v.length; i++) {
+			swap(v, i, rnd.nextInt(v.length));
+		}
+	}
+	
+	private void randomCount(int[] candidates, Voter[] voters, int numVoters, int[] stats) {
+
+		int[] current = new int[voters.length];
+		for (int i = 0; i < numVoters; i++) {
+			current[rnd.nextInt(current.length)]++;
+		}
+//		current[0] = rnd.nextInt(numVoters);
+//		int sum = current[0];
+//		for (int i = 1; i < current.length-1; i++) {
+//			current[i] = rnd.nextInt(numVoters-sum);
+//			sum += current[i];
+//		}
+//		current[current.length-1] = numVoters-sum;
+		// shuffle
+		//System.out.println(Arrays.toString(current));
+//		shuffle(current);
+		//System.out.println(Arrays.toString(current));
+		// check sum
+		int sum = 0;
+		for (int i = 0; i < current.length; i++) {
+			sum += current[i];
+		}
+		if (sum != numVoters) throw new RuntimeException();
+		
+		// results
+		int[] winners = new int[system.length];
+		for (int i = 0; i < system.length; i++) {
+			winners[i] = system[i].getWinner(voters, current, candidates);
+		}
+		boolean differs = false;
+		for (int i = 1; i < system.length; i++) {
+			if (winners[i] != winners[i-1]) {
+				differs = true;
+				break;
 			}
-			boolean differs = false;
-			for (int i = 1; i < system.length; i++) {
-				if (winners[i] != winners[i-1]) {
-					differs = true;
-					break;
-				}
-			}
-			stats[0]++;
-			if (differs) {
-				stats[1]++;
-			}
-		} else {
-			int begin = numVoters - sum;
-			for (int i = begin; i >=0; i--) {
-				current[pos] = i;
-				recurseCount(candidates, voters, current, numVoters, pos+1, sum+i, stats);
-			}
+		}
+		stats[0]++;
+		if (differs) {
+			stats[1]++;
 		}
 	}
 
@@ -110,14 +137,18 @@ public class ElectionSimulator {
 	public static void main(String[] args) {
 		int voters = VOTERS;
 		int candidates = CANDIDATES;
+		int repetitions = REPETITIONS;
 		if (args.length > 0) {
 			voters = Integer.parseInt(args[0]);
 		}
 		if (args.length > 1) {
 			candidates = Integer.parseInt(args[1]);
 		}
-		for (int i = candidates; i <= voters; i++) {
-			new ElectionSimulator(i, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
+		if (args.length > 2) {
+			repetitions = Integer.parseInt(args[2]);
+		}
+		for (int i = 10; i <= voters; i++) {
+			new RandomElectorElectionSimulator(i, candidates, repetitions, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
 		}
 	}
 }
