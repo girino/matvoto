@@ -1,17 +1,18 @@
 package org.girino.matvoto;
 
+import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 
 
 public class CombinatorialElectionSimulator {
 
-	public static final int VOTERS = 4;
-	public static final int CANDIDATES = 3;
+	public static final int VOTERS = 100;
+	public static final int CANDIDATES = 4;
 
 	int numVoters;
 	int[] candidates;
@@ -39,36 +40,38 @@ public class CombinatorialElectionSimulator {
 			l.add(v);
 			//System.out.println(Arrays.toString(preference));
 		}
-		long[] stats = new long[2];
+		BigInteger[] stats = new BigInteger[] { new BigInteger("0"), new BigInteger("0") };
 		countVoters(l, stats);
-		double percent = 100.0*(((double)stats[1])/((double)stats[0]));
+		double percent = 100.0*((stats[1].doubleValue())/(stats[0].doubleValue()));
 		System.out.println(numVoters + "," + candidates.length + "," + stats[0] + "," + stats[1] + "," + percent);
 	}
 	
-	private void countVoters(ArrayList<Voter> elements, long[] stats) {
-		int[] votes = new int[numVoters];
+	private void countVoters(ArrayList<Voter> elements, BigInteger[] stats) {
+		int[] counts = new int[elements.size()];
 		Voter[] elementsArray = elements.toArray(new Voter[0]);
-		recurseCount(candidates, elementsArray, votes, 0, stats);
+		recurseCount(candidates, elementsArray, counts, numVoters, 0, 0, stats);
 	}
 	
-	static Map<Long, Long> m = new HashMap<Long, Long>();
-	private void recurseCount(int[] candidates, Voter[] validVoters, int[] votes, int pos, long[] stats) {
-		if (pos == (votes.length)) {
-			int[] current = new int[validVoters.length];
-			for (int i = 0; i < votes.length; i++) {
-				current[votes[i]]++;
-			}
-//			int sum = 0;
-//			for (int i = 0; i < current.length; i++) {
-//				sum += current[i];
-//			}
-//			if (sum != numVoters) throw new RuntimeException();
-//			System.out.println(Arrays.toString(current));
-//			System.out.println(Arrays.toString(votes));
-			
+	private static BigInteger getMultiplier(int[] current, int numVoters) {
+		long a = numVoters;
+		long b = current[0];
+		BigInteger ret = CombinatorialHelper.combinationBig(a, b);
+//		System.out.println("0: " + a + ", " + b + " -> " + ret);
+		for (int i = 1; i < current.length; i++) {
+			a -= b;
+			b = current[i];
+			ret = ret.multiply(CombinatorialHelper.combinationBig(a, b));
+//			System.out.println(i + ": " + a + ", " + b + " -> " + ret);
+		}
+		return ret;
+	}
+	
+	private void recurseCount(int[] candidates, Voter[] voters, int[] current, int numVoters, int pos, int sum, BigInteger[] stats) {
+		if (pos == (current.length-1)) {
+			current[pos] = (numVoters-sum);
 			int[] winners = new int[system.length];
 			for (int i = 0; i < system.length; i++) {
-				winners[i] = system[i].getWinner(validVoters, current, candidates);
+				winners[i] = system[i].getWinner(voters, current, candidates);
 			}
 			boolean differs = false;
 			for (int i = 1; i < system.length; i++) {
@@ -77,24 +80,17 @@ public class CombinatorialElectionSimulator {
 					break;
 				}
 			}
-			long l = 0;
-			long mult = 1;
-			for (int i = 0; i < current.length; i++) {
-				l += current[i] * mult;
-				mult *= 10;
-			}
-			Long old = m.get(l);
-			if (old == null) old = 0L;
-			m.put(l, old+1);
-//			System.out.println(Arrays.toString(current) + " -> " + (old+1));
-			stats[0]++;
+			BigInteger multiplier = getMultiplier(current, numVoters);
+//			System.out.println(Arrays.toString(current) + " -> " + multiplier);
+			stats[0] = stats[0].add(multiplier);
 			if (differs) {
-				stats[1]++;
+				stats[1] = stats[1].add(multiplier);
 			}
 		} else {
-			for (int i = 0; i < validVoters.length; i++) {
-				votes[pos] = i;
-				recurseCount(candidates, validVoters, votes, pos+1, stats);
+			int begin = numVoters - sum;
+			for (int i = begin; i >=0; i--) {
+				current[pos] = i;
+				recurseCount(candidates, voters, current, numVoters, pos+1, sum+i, stats);
 			}
 		}
 	}
@@ -127,8 +123,6 @@ public class CombinatorialElectionSimulator {
 		v[i] = v[j];
 		v[j] = tmp;
 	}
-	
-
 
 	public static void main(String[] args) {
 		int voters = VOTERS;
@@ -140,21 +134,7 @@ public class CombinatorialElectionSimulator {
 			candidates = Integer.parseInt(args[1]);
 		}
 		for (int i = candidates; i <= voters; i++) {
-			m = new HashMap<Long, Long>();
 			new CombinatorialElectionSimulator(i, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
 		}
-		
-//		CombinatorialElectionSimulator c = new CombinatorialElectionSimulator(voters, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() });
-//		int s = c.makeCombinations(c.makeCandidates(candidates)).size();
-//		for (Long l: m.keySet()) {
-//			Long x = m.get(l);
-//			long[] ret = new long[s];
-//			long mult = 1;
-//			for (int j = 0; j < ret.length; j++) {
-//				ret[j] = (l/mult) % 10;
-//				mult *= 10;
-//			}
-//			System.out.println(Arrays.toString(ret) + " -> " + x + " = " + getMultiplier(ret, voters));
-//		}
 	}
 }

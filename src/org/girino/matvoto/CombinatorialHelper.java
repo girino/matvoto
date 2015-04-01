@@ -1,5 +1,6 @@
 package org.girino.matvoto;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,23 @@ public class CombinatorialHelper {
 			return secondLevel.get(b);
 		}
 		long ret = combination(a-1, b-1) + combination(a-1, b);
+		secondLevel.put(b, ret);
+		return ret;
+	}
+
+	static Map<Long, Map<Long, BigInteger>> combinationMapBig = new HashMap<Long, Map<Long, BigInteger>>();
+	
+	public static BigInteger combinationBig(long a, long b) {
+		if (b == 0 || a == b) return BigInteger.ONE; 
+		Map<Long, BigInteger> secondLevel = combinationMapBig.get(a);
+		if (secondLevel == null) {
+			secondLevel = new HashMap<Long, BigInteger>();
+			combinationMapBig.put(a, secondLevel);
+		}
+		if (secondLevel.containsKey(b)) {
+			return secondLevel.get(b);
+		}
+		BigInteger ret = combinationBig(a-1, b-1).add(combinationBig(a-1, b));
 		secondLevel.put(b, ret);
 		return ret;
 	}
