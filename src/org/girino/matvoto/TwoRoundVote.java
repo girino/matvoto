@@ -1,10 +1,13 @@
 package org.girino.matvoto;
 
+import java.util.Arrays;
+
 
 public class TwoRoundVote implements VoteSystem {
 
 	//@Override
 	public int getWinner(Voter[] voters, int[] counts, int[] candidates) {
+		
 		int[] votes1 = new int[candidates.length];
 		int winner1 = 0;
 		for (int i = 0; i < counts.length; i++) {

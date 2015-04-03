@@ -9,7 +9,7 @@ import java.util.Stack;
 public abstract class ElectionSimulator {
 
 	public static final int REPETITIONS = 10000;
-	public static final int VOTERS = 100;
+	public static final int VOTERS = 1000;
 	public static final int CANDIDATES = 3;
 
 	protected int numVoters;
@@ -59,7 +59,8 @@ public abstract class ElectionSimulator {
 		BigInteger[] stats = new BigInteger[] { new BigInteger("0"), new BigInteger("0") };
 		countVoters(l, stats);
 		double percent = 100.0*((stats[1].doubleValue())/(stats[0].doubleValue()));
-		System.out.println(numVoters + "," + candidates.length + "," + stats[0] + "," + stats[1] + "," + percent);
+//		System.out.println(numVoters + "," + candidates.length + "," + stats[0] + "," + stats[1] + "," + percent);
+		System.out.println(numVoters + "," + candidates.length + "," + percent);
 	}
 
 	public ElectionSimulator() {

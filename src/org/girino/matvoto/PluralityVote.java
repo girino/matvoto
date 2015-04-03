@@ -1,10 +1,13 @@
 package org.girino.matvoto;
 
+import java.util.Arrays;
+
 
 public class PluralityVote implements VoteSystem {
 
 	//@Override
 	public int getWinner(Voter[] voters, int[] counts, int[] candidates) {
+		Arrays.sort(candidates);
 		int[] votes = new int[candidates.length];
 		int winner = 0;
 		for (int i = 0; i < counts.length; i++) {

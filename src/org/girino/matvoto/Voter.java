@@ -33,7 +33,10 @@ public class Voter {
 
 	public int getPreferredCandidate(int[] candidates) {
 		for (int candidate : preferences) {
-			if (Arrays.binarySearch(candidates, candidate) >= 0) return candidate;
+			if (candidates[0] == candidate || candidates[1] == candidate) return candidate;
+			for (int i = 0; i < candidates.length; i++) {
+				if (candidates[i] == candidate) return candidate;
+			}
 		}
 		throw new RuntimeException("Candidates not among preferences.");
 	}
