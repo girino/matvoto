@@ -6,8 +6,8 @@ import java.util.ArrayList;
 
 public class FullCombinatorialElectionSimulator extends ElectionSimulator {
 	
-	public FullCombinatorialElectionSimulator(int voters, int numCandidates, VoteSystem[] system) {
-		super(voters, numCandidates, system);
+	public FullCombinatorialElectionSimulator(int voters, int numCandidates) {
+		super(voters, numCandidates);
 	}
 	
 	protected void countVoters(ArrayList<Voter> elements, BigInteger[] stats) {
@@ -43,7 +43,7 @@ public class FullCombinatorialElectionSimulator extends ElectionSimulator {
 			candidates = Integer.parseInt(args[1]);
 		}
 		for (int i = candidates; i <= voters; i++) {
-			new FullCombinatorialElectionSimulator(i, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
+			new FullCombinatorialElectionSimulator(i, candidates).run();
 		}
 	}
 }

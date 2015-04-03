@@ -11,8 +11,8 @@ public class RandomElectorElectionSimulator extends ElectionSimulator {
 
 	int rounds = 0;
 	
-	public RandomElectorElectionSimulator(int voters, int numCandidates, int rounds, VoteSystem[] system) {
-		super(voters, numCandidates, system);
+	public RandomElectorElectionSimulator(int voters, int numCandidates, int rounds) {
+		super(voters, numCandidates);
 		this.rounds = rounds;
 	}
 	
@@ -52,7 +52,7 @@ public class RandomElectorElectionSimulator extends ElectionSimulator {
 			repetitions = Integer.parseInt(args[2]);
 		}
 		for (int i = candidates; i <= voters; i++) {
-			new RandomElectorElectionSimulator(i, candidates, repetitions, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
+			new RandomElectorElectionSimulator(i, candidates, repetitions).run();
 		}
 	}
 }

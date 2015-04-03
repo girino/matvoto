@@ -2,6 +2,7 @@ package org.girino.matvoto;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Stack;
@@ -17,10 +18,11 @@ public abstract class ElectionSimulator {
 	protected VoteSystem[] system;
 	protected Random rnd = new Random();
 
-	public ElectionSimulator(int voters, int numCandidates, VoteSystem[] system) {
+	public ElectionSimulator(int voters, int numCandidates) {
 		candidates = makeCandidates(numCandidates);
 		numVoters = voters;
-		this.system = system;
+//		this.system = new VoteSystem[] { new PluralityVote(), new TwoRoundVote(), new BadTwoRoundVote() };
+		this.system = new VoteSystem[] { new PluralityVote(), new TwoRoundVote() };
 	}
 	
 	// template methods
@@ -56,11 +58,17 @@ public abstract class ElectionSimulator {
 			l.add(v);
 			//System.out.println(Arrays.toString(preference));
 		}
-		BigInteger[] stats = new BigInteger[] { new BigInteger("0"), new BigInteger("0") };
+		BigInteger[] stats = new BigInteger[system.length];
+		Arrays.fill(stats, BigInteger.ZERO);
 		countVoters(l, stats);
-		double percent = 100.0*((stats[1].doubleValue())/(stats[0].doubleValue()));
+		double[] percent = new double[stats.length-1];
+		for (int i = 0; i < percent.length; i++) {
+			percent[i] = 100.0*((stats[i+1].doubleValue())/(stats[0].doubleValue()));
+		}
 //		System.out.println(numVoters + "," + candidates.length + "," + stats[0] + "," + stats[1] + "," + percent);
-		System.out.println(numVoters + "," + candidates.length + "," + percent);
+		System.out.print("[" + numVoters);
+		for (double p : percent) System.out.print("," + p);
+		System.out.println("],");
 	}
 
 	public ElectionSimulator() {
@@ -103,16 +111,17 @@ public abstract class ElectionSimulator {
 				for (int i = 0; i < system.length; i++) {
 					winners[i] = system[i].getWinner(voters, current, candidates);
 				}
-				boolean differs = false;
+				boolean differs[] = new boolean[winners.length-1];
 				for (int i = 1; i < system.length; i++) {
-					if (winners[i] != winners[i-1]) {
-						differs = true;
-						break;
+					if (winners[i] != winners[0]) {
+						differs[i-1] = true;
 					}
 				}
 				stats[0] = stats[0].add(multiplier);
-				if (differs) {
-					stats[1] = stats[1].add(multiplier);
+				for (int i = 0; i < differs.length; i++) {
+					if (differs[i]) {
+						stats[i+1] = stats[i+1].add(multiplier);
+					}
 				}
 			}
 

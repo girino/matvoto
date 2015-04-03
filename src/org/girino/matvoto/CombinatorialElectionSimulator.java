@@ -7,8 +7,8 @@ import java.util.ArrayList;
 public class CombinatorialElectionSimulator extends ElectionSimulator {
 
 
-	public CombinatorialElectionSimulator(int voters, int numCandidates, VoteSystem[] system) {
-		super(voters, numCandidates, system);
+	public CombinatorialElectionSimulator(int voters, int numCandidates) {
+		super(voters, numCandidates);
 	}
 	
 	@Override
@@ -42,7 +42,7 @@ public class CombinatorialElectionSimulator extends ElectionSimulator {
 			candidates = Integer.parseInt(args[1]);
 		}
 		for (int i = candidates; i <= voters; i++) {
-			new CombinatorialElectionSimulator(i, candidates, new VoteSystem[] { new PluralityVote(), new TwoRoundVote() }).run();
+			new CombinatorialElectionSimulator(i, candidates).run();
 		}
 	}
 }
