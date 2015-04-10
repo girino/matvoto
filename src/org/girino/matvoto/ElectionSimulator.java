@@ -1,6 +1,8 @@
 package org.girino.matvoto;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,19 +12,20 @@ import java.util.Stack;
 public abstract class ElectionSimulator {
 
 	public static final int REPETITIONS = 10000;
-	public static final int VOTERS = 1000;
+	public static final int VOTERS = 100;
 	public static final int CANDIDATES = 3;
 
 	protected int numVoters;
 	protected int[] candidates;
-	protected VoteSystem[] system;
+	public static VoteSystem[] system;
 	protected Random rnd = new Random();
 
 	public ElectionSimulator(int voters, int numCandidates) {
 		candidates = makeCandidates(numCandidates);
 		numVoters = voters;
 //		this.system = new VoteSystem[] { new PluralityVote(), new TwoRoundVote(), new BadTwoRoundVote() };
-		this.system = new VoteSystem[] { new PluralityVote(), new TwoRoundVote() };
+		if (system == null)
+			system = new VoteSystem[] { new PluralityVote(), new TwoRoundVote() };
 	}
 	
 	// template methods
@@ -61,13 +64,15 @@ public abstract class ElectionSimulator {
 		BigInteger[] stats = new BigInteger[system.length];
 		Arrays.fill(stats, BigInteger.ZERO);
 		countVoters(l, stats);
-		double[] percent = new double[stats.length-1];
+		BigDecimal[] percent = new BigDecimal[stats.length-1];
+		BigDecimal stats0 = new BigDecimal(stats[0], MathContext.DECIMAL128);
 		for (int i = 0; i < percent.length; i++) {
-			percent[i] = 100.0*((stats[i+1].doubleValue())/(stats[0].doubleValue()));
+			BigDecimal statsi = new BigDecimal(stats[i+1], MathContext.DECIMAL128);
+			percent[i] = statsi.divide(stats0, MathContext.DECIMAL128).multiply(BigDecimal.valueOf(100));
 		}
 //		System.out.println(numVoters + "," + candidates.length + "," + stats[0] + "," + stats[1] + "," + percent);
 		System.out.print("[" + numVoters);
-		for (double p : percent) System.out.print("," + p);
+		for (BigDecimal p : percent) System.out.print("," + p);
 		System.out.println("],");
 	}
 

@@ -2,7 +2,7 @@ package org.girino.matvoto;
 
 
 
-public class TwoRoundVote implements VoteSystem {
+public class WinnerBreaksTieTwoRoundVote implements VoteSystem {
 
 	//@Override
 	public int getWinner(Voter[] voters, int[] counts, int[] candidates) {
@@ -40,7 +40,6 @@ public class TwoRoundVote implements VoteSystem {
 				}
 			}
 		}
-		if (votes2[1] == votes2[0]) return (secondRound[1] < secondRound[0])? secondRound[1]:secondRound[0];
 		return votes2[1] > votes2[0]?secondRound[1]:secondRound[0];
 	}
 

@@ -41,7 +41,15 @@ public class CombinatorialElectionSimulator extends ElectionSimulator {
 		if (args.length > 1) {
 			candidates = Integer.parseInt(args[1]);
 		}
-		for (int i = candidates; i <= voters; i++) {
+		ElectionSimulator.system = new VoteSystem[] {
+			new PluralityVote(),
+			new TwoRoundVote(),
+			new WinnerBreaksTieTwoRoundVote(),
+			new LoserBreaksTieTwoRoundVote(),
+			new OnlyTiesTwoRoundVote(),
+		};
+		int begin = candidates & ~1; // forces even
+		for (int i = begin; i <= voters; i+=2) {
 			new CombinatorialElectionSimulator(i, candidates).run();
 		}
 	}

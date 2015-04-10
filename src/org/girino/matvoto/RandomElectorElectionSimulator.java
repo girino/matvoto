@@ -40,7 +40,7 @@ public class RandomElectorElectionSimulator extends ElectionSimulator {
 
 	public static void main(String[] args) {
 		int voters = VOTERS;
-		int candidates = CANDIDATES;
+		int candidates = 8;
 		int repetitions = REPETITIONS;
 		if (args.length > 0) {
 			voters = Integer.parseInt(args[0]);
@@ -51,7 +51,14 @@ public class RandomElectorElectionSimulator extends ElectionSimulator {
 		if (args.length > 2) {
 			repetitions = Integer.parseInt(args[2]);
 		}
-		for (int i = candidates; i <= voters; i++) {
+		ElectionSimulator.system = new VoteSystem[] {
+				new PluralityVote(),
+				new TwoRoundVote(),
+//				new WinnerBreaksTieTwoRoundVote(),
+//				new LoserBreaksTieTwoRoundVote(),
+//				new OnlyTiesTwoRoundVote(),
+		};
+		for (int i = 1; i <= 1000000; i += Math.ceil(i/100.0)) {
 			new RandomElectorElectionSimulator(i, candidates, repetitions).run();
 		}
 	}

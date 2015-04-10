@@ -38,7 +38,7 @@ public class RandomPartitionElectionSimulator extends ElectionSimulator {
 			sum += current[i];
 		}
 		if (sum != numVoters) throw new RuntimeException();
-		BigInteger multiplier = BigInteger.ONE;//getMultiplier(current, numVoters).divide(BigInteger.valueOf(2));
+		BigInteger multiplier = /*BigInteger.ONE;*/getMultiplier(current, numVoters)/*.divide(BigInteger.valueOf(2))*/;
 		updateStats(candidates, voters, stats, current, multiplier);
 	}
 
