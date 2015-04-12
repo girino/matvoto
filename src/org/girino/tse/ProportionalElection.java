@@ -11,37 +11,13 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 
+import org.girino.tse.apportionment.DHontMethod;
+
 public class ProportionalElection {
 	
 	private static List<Integer> calculateChairs(List<Map<String, Object>> dbResults,
 			String key, String outKey, int totalChairs) {
-		List<Integer> votes = new ArrayList<Integer>();
-		List<Integer> chairs = new ArrayList<Integer>();
-		for (Map<String, Object> m : dbResults) {
-			Integer v = ((Number)m.get(key)).intValue();
-			votes.add(v);
-			chairs.add(0);
-		}
-		
-		for (int chair = 0; chair < totalChairs; chair++) {
-			double max = -1;
-			int maxpos = -1;
-			for (int i = 0; i < votes.size(); i++) {
-				int v = votes.get(i);
-				int c = chairs.get(i);
-				double mean = ((double)v)/((double)c+1);
-				if (mean > max) {
-					max = mean;
-					maxpos = i;
-				}
-			}
-			chairs.set(maxpos, chairs.get(maxpos)+1);
-		}
-		for (int i = 0; i < votes.size(); i++) {
-			dbResults.get(i).put(outKey, chairs.get(i));
-		}
-		
-		return chairs;
+		return new DHontMethod().calculateChairs(dbResults, key, outKey, totalChairs);
 	}
 	
 	public static void main(String[] args) throws SQLException {
@@ -50,13 +26,15 @@ public class ProportionalElection {
 		int year = 2014;
 		
 		DatabaseAccess a = new DatabaseAccess();
-		List<Map<String, Object>> ret = a.listAllVotesByCoalition(state, year);
+//		List<Map<String, Object>> ret = a.listAllVotesByCoalition(state, year);
+		List<Map<String, Object>> ret = a.listAllVotesByParty(state, year);
 		calculateChairs(ret, "VOTOS", "CHAIRS", 70);
 		List<Map<String, Object>> elected = new ArrayList<Map<String, Object>>();
 		for (Map<String, Object> m : ret) {
 			Integer chairs = (Integer)m.get("CHAIRS");
-			String coalition = (String)m.get("COMPOSICAO_LEGENDA");
-			elected.addAll(a.listBestNForCoalition(state, year, coalition, chairs));
+			String coalition = (String)m.get("SIGLA_PARTIDO");
+			elected.addAll(a.listBestNForParty(state, year, coalition, chairs));
+			System.out.println(a.listBestNForParty(state, year, coalition, chairs));
 		}
 		elected.sort(new Comparator<Map<String, Object>>() {
 

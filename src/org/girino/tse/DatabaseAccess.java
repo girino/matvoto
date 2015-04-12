@@ -92,6 +92,24 @@ public class DatabaseAccess {
 		Object[] params = new Object[] {year,  state, year, state };
 		return listAll(SQL, params, fields);
 	}
+	public List<Map<String, Object>> listAllVotesByParty(String state, int year) throws SQLException {
+		String SQL = " SELECT SIGLA_UF, "
+				+ "		SIGLA_PARTIDO, "
+				+ "		sum(QTDE_VOTOS_NOMINAIS)+SUM(QTDE_VOTOS_LEGENDA) as votos "
+				+ "	FROM votacao_partido " 
+				+ "	WHERE ANO_ELEICAO=? "
+				+ "	  AND DESCRICAO_CARGO = 'DEPUTADO FEDERAL' "
+				+ "	  AND SIGLA_UF=? " 
+				+ "	GROUP BY SIGLA_UF, NUMERO_PARTIDO";
+		
+		String[] fields = new String[] {
+				"SIGLA_UF",
+				"SIGLA_PARTIDO",
+				"VOTOS",
+		};
+		Object[] params = new Object[] {year,  state };
+		return listAll(SQL, params, fields);
+	}
 
 	public List<Map<String, Object>> listBestNForCoalition(String state, int year, String coalition, int n) throws SQLException {
 		String SQL = "select NOME_URNA_CANDIDATO, "
@@ -115,5 +133,26 @@ public class DatabaseAccess {
 		return listAll(SQL, params, fields);
 	}
 
+	public List<Map<String, Object>> listBestNForParty(String state, int year, String party, int n) throws SQLException {
+		String SQL = "select NOME_URNA_CANDIDATO, "
+				+ "   SIGLA_PARTIDO,"
+				+ "   sum(TOTAL_VOTOS) as votos "
+				+ " from consolidated "
+				+ " where sigla_uf = ? "
+				+ "   and ano_eleicao = ? "
+				+ "   and SIGLA_PARTIDO = ? "
+				+ "   and DESCRICAO_CARGO = 'DEPUTADO FEDERAL' "
+				+ " group by sq_candidato "
+				+ " order by sum(total_votos) desc "
+				+ " limit ?";
+		
+		String[] fields = new String[] {
+				"NOME_URNA_CANDIDATO",
+				"SIGLA_PARTIDO",
+				"VOTOS",
+		};
+		Object[] params = new Object[] {state,  year, party, n };
+		return listAll(SQL, params, fields);
+	}
 	
 }
