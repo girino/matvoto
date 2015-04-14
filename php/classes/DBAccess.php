@@ -115,7 +115,7 @@ class DBAccess {
 		return $res->rows;
 	}
 	
-	public function listAllVotesByCoalition($state, $year) {
+	public function listAllVotesByCoalition($state, $year, $position='DEPUTADO FEDERAL') {
 		$SQL = "	SELECT SIGLA_UF, "
 				. "		TIPO_LEGENDA, "
 				. "		NOME_COLIGACAO, "
@@ -123,7 +123,7 @@ class DBAccess {
 				. "		sum(QTDE_VOTOS_NOMINAIS)+SUM(QTDE_VOTOS_LEGENDA) as VOTOS "
 				. "	FROM votacao_partido "
 				. "	WHERE ANO_ELEICAO=? "
-				. "	  AND DESCRICAO_CARGO = 'DEPUTADO FEDERAL' "
+				. "	  AND DESCRICAO_CARGO = ? "
 				. "	  AND SIGLA_UF=? "
 				. "	  AND TIPO_LEGENDA='C'"
 				. "	GROUP BY SIGLA_UF, NOME_COLIGACAO"
@@ -135,7 +135,7 @@ class DBAccess {
 				. "		sum(QTDE_VOTOS_NOMINAIS)+SUM(QTDE_VOTOS_LEGENDA) as VOTOS "
 				. "	FROM votacao_partido " 
 				. "	WHERE ANO_ELEICAO=? "
-				. "	  AND DESCRICAO_CARGO = 'DEPUTADO FEDERAL' "
+				. "	  AND DESCRICAO_CARGO = ? "
 				. "	  AND SIGLA_UF=? " 
 				. "	  AND TIPO_LEGENDA='P'"
 				. "	GROUP BY SIGLA_UF, NUMERO_PARTIDO";
@@ -147,16 +147,16 @@ class DBAccess {
 				"COMPOSICAO_LEGENDA",
 				"VOTOS"
 		);
-		$params = array($year,  $state, $year, $state);
+		$params = array($year, $position, $state, $year, $position, $state);
 		return $this->listAll($SQL, $params, $fields);
 	}
-	public function listAllVotesByParty($state, $year) {
+	public function listAllVotesByParty($state, $year, $position='DEPUTADO FEDERAL') {
 		$SQL = " SELECT SIGLA_UF, "
 				. "		SIGLA_PARTIDO, "
 				. "		sum(QTDE_VOTOS_NOMINAIS)+SUM(QTDE_VOTOS_LEGENDA) as VOTOS "
 				. "	FROM votacao_partido " 
 				. "	WHERE ANO_ELEICAO=? "
-				. "	  AND DESCRICAO_CARGO = 'DEPUTADO FEDERAL' "
+				. "	  AND DESCRICAO_CARGO = ? "
 				. "	  AND SIGLA_UF=? " 
 				. "	GROUP BY SIGLA_UF, NUMERO_PARTIDO";
 		
@@ -165,11 +165,11 @@ class DBAccess {
 				"SIGLA_PARTIDO",
 				"VOTOS",
 		);
-		$params = array($year,  $state);
+		$params = array($year, $position, $state);
 		return $this->listAll($SQL, $params, $fields);
 	}
 
-	public function listBestNForCoalition($state, $year, $coalition, $n) {
+	public function listBestNForCoalition($state, $year, $coalition, $n, $position='DEPUTADO FEDERAL') {
 		$SQL = "select NOME_URNA_CANDIDATO, "
 				. "   SIGLA_PARTIDO,"
 				. "   sum(TOTAL_VOTOS) as VOTOS "
@@ -177,7 +177,7 @@ class DBAccess {
 				. " where sigla_uf = ? "
 				. "   and ano_eleicao = ? "
 				. "   and COMPOSICAO_LEGENDA = ? "
-				. "   and DESCRICAO_CARGO = 'DEPUTADO FEDERAL' "
+				. "   and DESCRICAO_CARGO = ? "
 				. " group by sq_candidato "
 				. " order by sum(total_votos) desc "
 				. " limit ?";
@@ -187,11 +187,11 @@ class DBAccess {
 				"SIGLA_PARTIDO",
 				"VOTOS",
 		);
-		$params = array($state,  $year, $coalition, $n);
+		$params = array($state,  $year, $coalition, $position, $n);
 		return $this->listAll($SQL, $params, $fields);
 	}
 
-	public function listBestNForParty($state, $year, $party, $n) {
+	public function listBestNForParty($state, $year, $party, $n, $position='DEPUTADO FEDERAL') {
 		$SQL = "select NOME_URNA_CANDIDATO, "
 				. "   SIGLA_PARTIDO,"
 				. "   sum(TOTAL_VOTOS) as VOTOS "
@@ -199,7 +199,7 @@ class DBAccess {
 				. " where sigla_uf = ? "
 				. "   and ano_eleicao = ? "
 				. "   and SIGLA_PARTIDO = ? "
-				. "   and DESCRICAO_CARGO = 'DEPUTADO FEDERAL' "
+				. "   and DESCRICAO_CARGO = ? "
 				. " group by sq_candidato "
 				. " order by sum(total_votos) desc "
 				. " limit ?";
@@ -209,9 +209,13 @@ class DBAccess {
 				"SIGLA_PARTIDO",
 				"VOTOS",
 		);
-		$params = array($state, $year, $party, $n);
+		$params = array($state, $year, $party, $position, $n);
 		return $this->listAll($SQL, $params, $fields);
-	}	
+	}
+	
+	public function getChairsForElection($state, $year, $position='DEPUTADO FEDERAL') {
+		return 70;
+	}
 }
 
 require_once 'ApportionmentMethods.php';
@@ -220,19 +224,8 @@ $state = "SP";
 $year = 2014;
 		
 $a = new DBAccess();
-$ret = $a->listAllVotesByCoalition($state, $year);
-(new DHontMethod())->calculateChairs($ret, "VOTOS", "CHAIRS", 70);
-$elected = array();
-foreach ($ret as $m) {
-	$chairs = $m["CHAIRS"];
-	$coalition = $m["COMPOSICAO_LEGENDA"];
-	$elected = array_merge($elected, $a->listBestNForCoalition($state, $year, $coalition, $chairs));
-	//print_r($a->listBestNForCoalition($state, $year, $coalition, $chairs));
-}
-uasort($elected, function($a, $b) {
-	if ($a['VOTOS'] == $b['VOTOS']) return 0;
-	return ($a['VOTOS'] > $b['VOTOS'])?1:-1;
-});
+$elected = (new ProportionalDHont())->listElectedOfficials($a, $state, $year, false);
+
 foreach ($elected as $map) {
 	print $map['NOME_URNA_CANDIDATO']. " (" . $map['SIGLA_PARTIDO'] . ") => " . $map['VOTOS'] . "\n";
 }
