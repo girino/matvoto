@@ -214,20 +214,55 @@ class DBAccess {
 	}
 	
 	public function getChairsForElection($state, $year, $position='DEPUTADO FEDERAL') {
-		return 70;
+		$SQL = "select QTDE_VAGAS 
+				from vagas  
+				where ANO_ELEICAO = ? 
+				  and UPPER(DESCRICAO_CARGO) = ?  
+				  and SIGLA_UF = ?";
+		$fields = array(
+				"QTDE_VAGAS",
+		);
+		$params = array($year, $position, $state);
+		$ret = $this->listAll($SQL, $params, $fields);
+		return $ret[0]['QTDE_VAGAS'];
+	}
+	
+	public function getVotesByParty($state, $year, $party, $position='DEPUTADO FEDERAL') {
+		$SQL = "select SIGLA_PARTIDO, 
+					sum(QTDE_VOTOS_NOMINAIS)+SUM(QTDE_VOTOS_LEGENDA) as VOTOS 
+				from votacao_partido 
+				where SIGLA_PARTIDO = ? 
+				  and ANO_ELEICAO  = ? 
+				  and SIGLA_UF = ? 
+				  and DESCRICAO_CARGO = ? 
+				GROUP BY SIGLA_UF, NUMERO_PARTIDO;
+				";
+		$fields = array(
+				"SIGLA_PARTIDO",
+				"VOTOS",
+		);
+		$params = array($party, $year, $state, $position);
+		return $this->listAll($SQL, $params, $fields);
 	}
 }
 
 require_once 'ApportionmentMethods.php';
 		
-$state = "SP";
+$state = "RJ";
 $year = 2014;
 		
 $a = new DBAccess();
-$elected = (new ProportionalDHont())->listElectedOfficials($a, $state, $year, false);
+$elected = (new ProportionalDHont(false))->listElectedOfficials($a, $state, $year);
 
 foreach ($elected as $map) {
 	print $map['NOME_URNA_CANDIDATO']. " (" . $map['SIGLA_PARTIDO'] . ") => " . $map['VOTOS'] . "\n";
 }
+
+$elected = (new ProportionalDHont(false))->listElectedParties($a, $state, $year);
+
+foreach ($elected as $map) {
+	print $map['SIGLA_PARTIDO'] . " => " . $map['CHAIRS'] . " ( " . $map['VOTOS'] .")\n";
+}
+
 
 ?>

@@ -10,13 +10,13 @@ interface ElectionRule {
 	public function listElectedParties($dbAccess, $state, $year, $position='DEPUTADO FEDERAL');
 }
 
-class ProportionalDHont implements ElectionRule {
+class Proportional implements ElectionRule {
 	
 	private $method;
 	private $allowsCoalition;
 	
-	public  function __construct($allowsCoalition = true) {
-		$this->method = new DHontMethod();
+	public  function __construct($method, $allowsCoalition = true) {
+		$this->method = $method;
 		$this->allowsCoalition = $allowsCoalition;
 	}
 
@@ -31,7 +31,7 @@ class ProportionalDHont implements ElectionRule {
 			$listBestN = 'listBestNForParty';
 		}
 		$chairs = $dbAccess->getChairsForElection($state, $year, $position);
-		$this->method->calculateChairs($ret, "VOTOS", "CHAIRS", 70);
+		$this->method->calculateChairs($ret, "VOTOS", "CHAIRS", $chairs);
 		
 		$elected = array();
 		foreach ($ret as $m) {
@@ -49,7 +49,37 @@ class ProportionalDHont implements ElectionRule {
 	}
 	
 	public function listElectedParties($dbAccess, $state, $year, $position='DEPUTADO FEDERAL') {
+		$elected = $this->listElectedOfficials($dbAccess, $state, $year, $position);
+		// count by party
+		$partyMap = array();
+		foreach($elected as $candidate) {
+			$party = $candidate["SIGLA_PARTIDO"];
+			if (!array_key_exists($party, $partyMap)) {
+				$votes = $dbAccess->getVotesByParty($state, $year, $party, $position);
+				$newParty = array(
+					"SIGLA_PARTIDO" => $party,
+						"CHAIRS" => 0,
+						"VOTOS" => $votes[0]['VOTOS'],
+				);
+				$partyMap[$party] = $newParty;
+			}
+			$partyMap[$party]['CHAIRS']++;
+		}
 		
+		uasort($partyMap, function($a, $b) {
+			if ($a['CHAIRS'] == $b['CHAIRS']) {
+				if ($a['VOTOS'] == $b['VOTOS']) return 0;
+				return ($a['VOTOS'] > $b['VOTOS'])?1:-1;
+			}
+			return ($a['CHAIRS'] > $b['CHAIRS'])?1:-1;
+		});
+		return $partyMap;
+	}
+}
+
+class ProportionalDhont extends Proportional {
+	public  function __construct($allowsCoalition = true) {
+		parent::__construct(new DHontMethod(), $allowsCoalition);
 	}
 }
 	
