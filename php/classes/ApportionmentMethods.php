@@ -94,7 +94,7 @@ class DHontMethod implements ApportionmentMethod {
 			array_push($votes, $v);
 			array_push($chairs, 0);
 		}
-
+		
 		for ($chair = 0; $chair < $totalChairs; $chair++) {
 			$max = -1.0;
 			$maxpos = -1;

@@ -244,8 +244,40 @@ class DBAccess {
 		$params = array($party, $year, $state, $position);
 		return $this->listAll($SQL, $params, $fields);
 	}
+	
+	public function listUF() {
+		$SQL = "SELECT distinct SIGLA_UF
+				FROM vagas
+				ORDER BY (SIGLA_UF='BR'), SIGLA_UF";
+		$fields = array(
+				"SIGLA_UF",
+		);
+		$params = array();
+		return $this->listAll($SQL, $params, $fields);	
+	}
+	public function listYears() {
+		$SQL = "SELECT distinct ANO_ELEICAO
+				FROM vagas
+				ORDER BY ANO_ELEICAO desc";
+		$fields = array(
+				"ANO_ELEICAO",
+		);
+		$params = array();
+		return $this->listAll($SQL, $params, $fields);	
+	}
+	public function listUFByYear($ano) {
+		$SQL = "SELECT distinct SIGLA_UF
+				FROM vagas
+				WHERE ANO_ELEICAO = ? ";
+		$fields = array(
+				"SIGLA_UF",
+		);
+		$params = array();
+		return $this->listAll($SQL, $params, $fields);	
+	}
 }
 
+function run() {
 require_once 'ApportionmentMethods.php';
 		
 $state = "RJ";
@@ -263,6 +295,9 @@ $elected = (new ProportionalDHont(false))->listElectedParties($a, $state, $year)
 foreach ($elected as $map) {
 	print $map['SIGLA_PARTIDO'] . " => " . $map['CHAIRS'] . " ( " . $map['VOTOS'] .")\n";
 }
+}
+
+//run();
 
 
 ?>
