@@ -125,7 +125,7 @@ class DBAccess {
 				. "	WHERE ANO_ELEICAO=? "
 				. "	  AND DESCRICAO_CARGO = ? "
 				. "	  AND SIGLA_UF=? "
-				. "	  AND TIPO_LEGENDA='C'"
+				. "	  AND TIPO_LEGENDA LIKE 'C%'"
 				. "	GROUP BY SIGLA_UF, NOME_COLIGACAO"
 				. " UNION ALL"
 				. "	SELECT SIGLA_UF, "
@@ -137,7 +137,7 @@ class DBAccess {
 				. "	WHERE ANO_ELEICAO=? "
 				. "	  AND DESCRICAO_CARGO = ? "
 				. "	  AND SIGLA_UF=? " 
-				. "	  AND TIPO_LEGENDA='P'"
+				. "	  AND TIPO_LEGENDA LIKE 'P%'"
 				. "	GROUP BY SIGLA_UF, NUMERO_PARTIDO";
 		
 		$fields = array(

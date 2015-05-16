@@ -12,18 +12,25 @@ if (!$year) $year = 2010;
 if (!$state) $state = 'DF';
 
 $dbaccess = new DBAccess();
-$apportionment = new ProportionalDHont(false);
+foreach (array(true, false) as $useCol) {
+if ($useCol) 
+	echo "Com coligações<br />";
+else
+	echo "Sem coligações<br />";
+$apportionment = new ProportionalDHont($useCol);
 
 
-$elected = $apportionment->listElectedOfficials($dbaccess, $state, $year);
+//$elected = $apportionment->listElectedOfficials($dbaccess, $state, $year);
 
-foreach ($elected as $map) {
-	print $map['NOME_URNA_CANDIDATO']. " (" . $map['SIGLA_PARTIDO'] . ") => " . $map['VOTOS'] . "<br \>";
-}
+//foreach ($elected as $map) {
+//	print $map['NOME_URNA_CANDIDATO']. " (" . $map['SIGLA_PARTIDO'] . ") => " . $map['VOTOS'] . "<br \>";
+//}
 
 $elected = $apportionment->listElectedParties($dbaccess, $state, $year);
 
 foreach ($elected as $map) {
 	print $map['SIGLA_PARTIDO'] . " => " . $map['CHAIRS'] . " ( " . $map['VOTOS'] .")<br \>";
+}
+echo '<hr />';
 }
 
